@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
     <meta charset='utf-8'>
-    <title>VBE PWA</title>
+    <title>VBE</title>
     <script src='vue.js'></script>
     <script src='vuex.js'></script>
     <link rel='stylesheet' href='vbe.css'>
@@ -432,5 +432,19 @@
             },
         },
     });
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+ window.addEventListener('load', function() {  
+   navigator.serviceWorker.register('/sw.js').then(
+     function(registration) {
+       // Registration was successful
+       console.log('Site can be added offline: ServiceWorker registration successful with scope: ', registration.scope); },
+     function(err) {
+       // registration failed :(
+       console.log('Site can`t be added offline: ServiceWorker registration failed: ', err);
+     });
+ });
+}
 </script>
 </html>
