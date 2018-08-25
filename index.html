@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- TODO: use npm and sw-precache (cache changes detection at building) -->
-<html lang='en'>
+<html lang='en' style='width:100%;height:100%;'>
 <head>
     <meta charset='utf-8'>
     <title>VBE</title>
@@ -79,64 +79,54 @@
         }
     </style>
 </head>
-<body>
-    <div style='height:400px;background-color:rgb(200,200,200);'>
-        <div style='resize:both;width:500px;height:300px;max-width:100%;max-height:100%;overflow:hidden;background-color:rgb(220,220,220);'>
-
-            <div style='position:relative;width:100%;height:100%'>
-
-                <div id='vbe' style='width=100%;height:100%' v-on:drop.prevent.stop='import_file($event)' v-on:dragover.prevent.stop='prevent_drag($event)' v-on:dragenter.prevent.stop='prevent_drag($event)' v-on:dragstart.prevent.stop='prevent_drag($event)' v-on:dragend.prevent.stop='prevent_drag($event)' v-on:drag.prevent.stop='prevent_drag($event)' v-on:dragleave.prevent.stop='stop_drag' v-on:dragend.prevent.stop='stop_drag'>
-                    <div v-if='is_file_droppable' style='width:100%;height:100%;box-sizing:border-box;position:absolute;z-index:100;border:1rem dashed black;background-color:#00000040;'></div>
-                    <bar content_direction='column' content_main_align='most-far' height='100%' width='100%' font='1.5em serif'  >
-                        <bar ref='top_bar' v-bind:height='s_top_height' content_main_align='most-far'>
-                            <text_input ref='filename'  v-bind:onedit='set_filename' input_save_style_class='top_set_btn' input_text_style_class='top_input' btn_style_class='top_change_btn' input_save_text=' ' width='100%' v-bind:height='s_top_height' v-bind:control_text='filename' locale_reg='а-яА-ЯёЁ№'>{{ filename }}</text_input>
-                            <btn ref='save_switch' v-bind:height='s_top_height' v-bind:width='s_top_height' v-bind:background_image='get_save_img' v-bind:onclick='change_current_mode'></btn>
-                        </bar>
-                        <!-- Input menu -->
-                        <bar v-if='current_mode=="enter"' overflow='hidden'>
-                            <textarea style='width:100%;height:100%;overflow:auto;resize:none;font-size:1rem;white-space:pre;' v-on:keypress='reset_enter_state' v-on:paste='reset_enter_state'></textarea>
-                            <bar width='auto' content_direction='column'>
-                                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
-                                <select_one v-bind:all_values='[{"bottom_left":get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
-                                <btn v-bind:onclick='set_next_enter_state' v-bind:disabled='error_enter.length != 0' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ btn_enter_str }}</btn>
-                                <div style='color:red;' v-bind:style='{width:"calc(4*"+s_top_height+")"}'>{{ error_enter }}</div>
-                            </bar>
-                        </bar>
-                        <!-- Safe menu -->
-                        <keep-alive>
-                        <bar v-if='current_mode=="save"' overflow='hidden'>
-                            <pre style='width:100%;height:100%;box-sizing:border-box;margin:0;overflow:hidden;'><code style='display:inline-block;width:100%;height:100%;box-sizing:border-box;'>{{ get_code }}</code></pre>
-                            <bar width='auto' content_direction='column'>
-                                <btn v-bind:onclick='save_as_file' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_save') }}</btn>
-                                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
-                                <ei_component ref='exporter_settings' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:bitmap='get_bitmap' v-bind:ei_obj='get_exporter' v-bind:onupdate='update_settings' v-bind:settings_obj='exporter_settings' v-bind:locale='locale'></ei_component>
-                            </bar>
-                        </bar>
-                        </keep-alive>
-                        <!-- Main window -->
-                        <bar v-show='current_mode=="main"'>
-                            <canvas-bitmap ref='bitmap' @cursor_moved='cursor_handler' v-bind:width_height='width_height' v-bind:try_save_pos='canvas_start' v-bind:scale='scale'></canvas-bitmap>
-                            <bar width='auto' content_direction='column'>
-                            <bar width='auto' content_direction='column' border_width='0' min_height='8rem'>
-                                <input2d ref='scale_bitmap' v-bind:default_left='width_height[0]' v-bind:default_right='width_height[1]' v-bind:onedit='resize' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_save_text=' ' style_class='resize_bitmap'></input2d>
-                                <num_input ref='scale_viewport' v-bind:onedit='scale_viewport' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_plus_text=' ' btn_minus_text=' ' style_class='scale_bitmap_viewport' v-bind:min_val='1' v-bind:max_val='20'></num_input>
-                                <btn ref='clear' v-bind:onclick='clear' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_clear') }}</btn>
-                                <select_one ref='canvas_start_pos' v-bind:all_values='[{bottom_left:get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
-                                <!--<select_one ref='canvas_start_pos' v-bind:all_values='[{export_from_bl:get_l10n("export_from_bl")},{export_from_br:get_l10n("export_from_br")},{export_from_tl:get_l10n("export_from_tl")},{export_from_tr:get_l10n("export_from_tr")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input'></select_one>-->
-                                <div v-html='pos_string' style='text-align:left;width:100%;padding-left:1rem;font-size:1rem'></div>
-                            </bar>
-                            <bar width='auto' v-bind:height='s_top_height' border_width='0'>
-                                    <btn v-bind:onclick='set_enter_mode' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_enter_new') }}</btn>
-                            </bar>
-                            </bar>
-                        </bar>
-                    </bar>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
+<body style='width:100%;height:100%;margin:0;overflow:hidden;'>
+<div id='vbe' style='width=100%;height:100%' v-on:drop.prevent.stop='import_file($event)' v-on:dragover.prevent.stop='prevent_drag($event)' v-on:dragenter.prevent.stop='prevent_drag($event)' v-on:dragstart.prevent.stop='prevent_drag($event)' v-on:dragend.prevent.stop='prevent_drag($event)' v-on:drag.prevent.stop='prevent_drag($event)' v-on:dragleave.prevent.stop='stop_drag' v-on:dragend.prevent.stop='stop_drag'>
+    <div v-if='is_file_droppable' style='width:100%;height:100%;box-sizing:border-box;position:absolute;z-index:100;border:1rem dashed black;background-color:#00000040;'></div>
+    <bar content_direction='column' content_main_align='most-far' height='100%' width='100%' font='1.5em serif'  >
+        <bar ref='top_bar' v-bind:height='s_top_height' content_main_align='most-far'>
+            <text_input ref='filename'  v-bind:onedit='set_filename' input_save_style_class='top_set_btn' input_text_style_class='top_input' btn_style_class='top_change_btn' input_save_text=' ' width='100%' v-bind:height='s_top_height' v-bind:control_text='filename' locale_reg='а-яА-ЯёЁ№'>{{ filename }}</text_input>
+            <btn ref='save_switch' v-bind:height='s_top_height' v-bind:width='s_top_height' v-bind:background_image='get_save_img' v-bind:onclick='change_current_mode'></btn>
+        </bar>
+        <!-- Input menu -->
+        <bar v-if='current_mode=="enter"' overflow='hidden'>
+            <textarea style='width:100%;height:100%;overflow:auto;resize:none;font-size:1rem;white-space:pre;' v-on:keypress='reset_enter_state' v-on:paste='reset_enter_state'></textarea>
+            <bar width='auto' content_direction='column'>
+                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
+                <select_one v-bind:all_values='[{"bottom_left":get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
+                <btn v-bind:onclick='set_next_enter_state' v-bind:disabled='error_enter.length != 0' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ btn_enter_str }}</btn>
+                <div style='color:red;' v-bind:style='{width:"calc(4*"+s_top_height+")"}'>{{ error_enter }}</div>
+            </bar>
+        </bar>
+        <!-- Safe menu -->
+        <keep-alive>
+        <bar v-if='current_mode=="save"' overflow='hidden'>
+            <pre style='width:100%;height:100%;box-sizing:border-box;margin:0;overflow:hidden;'><code style='display:inline-block;width:100%;height:100%;box-sizing:border-box;'>{{ get_code }}</code></pre>
+            <bar width='auto' content_direction='column'>
+                <btn v-bind:onclick='save_as_file' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_save') }}</btn>
+                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
+                <ei_component ref='exporter_settings' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:bitmap='get_bitmap' v-bind:ei_obj='get_exporter' v-bind:onupdate='update_settings' v-bind:settings_obj='exporter_settings' v-bind:locale='locale'></ei_component>
+            </bar>
+        </bar>
+        </keep-alive>
+        <!-- Main window -->
+        <bar v-show='current_mode=="main"'>
+            <canvas-bitmap ref='bitmap' @cursor_moved='cursor_handler' v-bind:width_height='width_height' v-bind:try_save_pos='canvas_start' v-bind:scale='scale'></canvas-bitmap>
+            <bar width='auto' content_direction='column'>
+            <bar width='auto' content_direction='column' border_width='0' min_height='8rem'>
+                <input2d ref='scale_bitmap' v-bind:default_left='width_height[0]' v-bind:default_right='width_height[1]' v-bind:onedit='resize' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_save_text=' ' style_class='resize_bitmap'></input2d>
+                <num_input ref='scale_viewport' v-bind:onedit='scale_viewport' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_plus_text=' ' btn_minus_text=' ' style_class='scale_bitmap_viewport' v-bind:min_val='1' v-bind:max_val='20'></num_input>
+                <btn ref='clear' v-bind:onclick='clear' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_clear') }}</btn>
+                <select_one ref='canvas_start_pos' v-bind:all_values='[{bottom_left:get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
+                <!--<select_one ref='canvas_start_pos' v-bind:all_values='[{export_from_bl:get_l10n("export_from_bl")},{export_from_br:get_l10n("export_from_br")},{export_from_tl:get_l10n("export_from_tl")},{export_from_tr:get_l10n("export_from_tr")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input'></select_one>-->
+                <div v-html='pos_string' style='text-align:left;width:100%;padding-left:1rem;font-size:1rem'></div>
+            </bar>
+            <bar width='auto' v-bind:height='s_top_height' border_width='0'>
+                    <btn v-bind:onclick='set_enter_mode' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_enter_new') }}</btn>
+            </bar>
+            </bar>
+        </bar>
+    </bar>
+</div>
 </body>
 <script type='module'>
     import {default_l10n} from './default_l10n.js'

@@ -1,6 +1,7 @@
 'use strict';
 importScripts('sw-toolbox.js'); 
 toolbox.precache([
+    '.',
     'sw.js',
     'sw-toolbox.js',
 
@@ -31,8 +32,8 @@ toolbox.precache([
     'plus.svg',
     'save.svg',
 
-    './default_l10n.js',
-    './ru_l10n.js',
+    'default_l10n.js',
+    'ru_l10n.js',
 
     'canvas_bitmap.js',
     'bar.js',
