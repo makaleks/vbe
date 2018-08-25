@@ -110,7 +110,7 @@
         </keep-alive>
         <!-- Main window -->
         <bar v-show='current_mode=="main"'>
-            <canvas-bitmap ref='bitmap' @cursor_moved='cursor_handler' v-bind:width_height='width_height' v-bind:try_save_pos='canvas_start' v-bind:scale='scale'></canvas-bitmap>
+            <canvas-bitmap :set_msg='set_debug_msg' ref='bitmap' @cursor_moved='cursor_handler' v-bind:width_height='width_height' v-bind:try_save_pos='canvas_start' v-bind:scale='scale'></canvas-bitmap>
             <bar width='auto' content_direction='column'>
             <bar width='auto' content_direction='column' border_width='0' min_height='8rem'>
                 <input2d ref='scale_bitmap' v-bind:default_left='width_height[0]' v-bind:default_right='width_height[1]' v-bind:onedit='resize' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_save_text=' ' style_class='resize_bitmap'></input2d>
@@ -161,6 +161,7 @@
                 default_l10n,
                 ru_l10n,
             ],
+            debug_msg: '',
             'filename': 'new_bitmap',
             's_top_height': '2rem',
             'width_height': [16, 16],
@@ -237,6 +238,8 @@
             },
         },
         methods: {
+            set_debug_msg: function(m){
+            this.debug_msg = m;},
             get_l10n: function(k) {
                 for (var i = 0; i < this.l10n.length; i++) {
                     if (this.l10n[i].lang == this.locale) {

@@ -4,6 +4,10 @@ export var canvas_bitmap = {
     last_point: [null, null],
     last_scroll_center: [null, null],
     props: {
+        set_msg: {
+            type:Function,
+            default:(m)=>{},
+        },
         scale: {
             type: Number,
             default: 1,
@@ -58,7 +62,7 @@ export var canvas_bitmap = {
 <div v-on:scroll='onscroll' v-bind:class='style_class' v-bind:style='{"position":"relative","width":"100%","height":"100%",overflow:overflow}'>
 <iframe style='z-index:-1;position:absolute;width:100%;height:100%;' frameborder=0></iframe>
 <div name='container-center' v-bind:style='{width:"100%",height:"100%","background-color":style_background_color}'>
-    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:mousedown='start_drawing' v-on:mouseup='end_drawing' v-on:mouseleave='end_drawing' v-on:mousemove='draw' style='position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
+    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:pointerdown='start_drawing' v-on:pointerup='end_drawing' v-on:pointermove='draw' style='position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
 </div>
 </div>
     `,
@@ -152,6 +156,8 @@ export var canvas_bitmap = {
             this.send_cursor_pos();
         },
         draw: function(e) {
+            //console.log(e);
+            this.set_msg('sizes: ' + e.clientX + ':' + e.clientY);
             var canvas = this.$el.getElementsByTagName('canvas')[0];
             var cell_width = this.canvas_width / this.width;
             var cell_height = this.canvas_height / this.height;
