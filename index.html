@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>VBE PWA</title>
+    <script src='vue.js'></script>
+    <script src='vuex.js'></script>
+    <link rel='stylesheet' href='vbe.css'>
+
+    <link rel='stylesheet' href='./highlight/styles/github-gist.css'>
+    <script src='./highlight/highlight.pack.js'></script>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="VBE">
+    <meta name="apple-mobile-web-app-title" content="VBE">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="msapplication-navbutton-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-starturl" content="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <style>
+        .save {
+            background-image: url('./save.svg');
+            background-size: 100% 100%;
+        }
+        .top_set_btn {
+            background-image: url('./check.svg');
+            background-size: 100% 100%;
+            margin: 0;
+        }
+        .top_change_btn, .top_input {
+            width: 100%;
+        }
+        
+        .resize_bitmap {
+            display: flex;
+            flex-direction: row;
+            justify-content:space-around;
+            flex-wrap: nowrap;
+        }
+        .resize_bitmap button {
+            background-image: url('./cross.svg');
+            background-size: 100% 100%;
+        }
+        .scale_bitmap_viewport {
+            display: flex;
+            flex-direction: row;
+            justify-content:space-around;
+            flex-wrap: nowrap;
+        }
+        .scale_bitmap_viewport button:first-child {
+            background-image: url('./minus.svg');
+            background-size: 100% 100%;
+        }
+        .scale_bitmap_viewport button:last-child {
+            background-image: url('./plus.svg');
+            background-size: 100% 100%;
+        }
+    </style>
+</head>
+<body>
+    <div style='height:400px;background-color:rgb(200,200,200);'>
+        <div style='resize:both;width:500px;height:300px;max-width:100%;max-height:100%;overflow:hidden;background-color:rgb(220,220,220);'>
+
+            <div style='position:relative;width:100%;height:100%'>
+
+                <div id='vbe' style='width=100%;height:100%' v-on:drop.prevent.stop='import_file($event)' v-on:dragover.prevent.stop='prevent_drag($event)' v-on:dragenter.prevent.stop='prevent_drag($event)' v-on:dragstart.prevent.stop='prevent_drag($event)' v-on:dragend.prevent.stop='prevent_drag($event)' v-on:drag.prevent.stop='prevent_drag($event)' v-on:dragleave.prevent.stop='stop_drag' v-on:dragend.prevent.stop='stop_drag'>
+                    <div v-if='is_file_droppable' style='width:100%;height:100%;box-sizing:border-box;position:absolute;z-index:100;border:1rem dashed black;background-color:#00000040;'></div>
+                    <bar content_direction='column' content_main_align='most-far' height='100%' width='100%' font='1.5em serif'  >
+                        <bar ref='top_bar' v-bind:height='s_top_height' content_main_align='most-far'>
+                            <text_input ref='filename'  v-bind:onedit='set_filename' input_save_style_class='top_set_btn' input_text_style_class='top_input' btn_style_class='top_change_btn' input_save_text=' ' width='100%' v-bind:height='s_top_height' v-bind:control_text='filename' locale_reg='а-яА-ЯёЁ№'>{{ filename }}</text_input>
+                            <btn ref='save_switch' v-bind:height='s_top_height' v-bind:width='s_top_height' v-bind:background_image='get_save_img' v-bind:onclick='change_current_mode'></btn>
+                        </bar>
+                        <!-- Input menu -->
+                        <bar v-if='current_mode=="enter"' overflow='hidden'>
+                            <textarea style='width:100%;height:100%;overflow:auto;resize:none;font-size:1rem;white-space:pre;' v-on:keypress='reset_enter_state' v-on:paste='reset_enter_state'></textarea>
+                            <bar width='auto' content_direction='column'>
+                                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
+                                <select_one v-bind:all_values='[{"bottom_left":get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
+                                <btn v-bind:onclick='set_next_enter_state' v-bind:disabled='error_enter.length != 0' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ btn_enter_str }}</btn>
+                                <div style='color:red;' v-bind:style='{width:"calc(4*"+s_top_height+")"}'>{{ error_enter }}</div>
+                            </bar>
+                        </bar>
+                        <!-- Safe menu -->
+                        <keep-alive>
+                        <bar v-if='current_mode=="save"' overflow='hidden'>
+                            <pre style='width:100%;height:100%;box-sizing:border-box;margin:0;overflow:hidden;'><code style='display:inline-block;width:100%;height:100%;box-sizing:border-box;'>{{ get_code }}</code></pre>
+                            <bar width='auto' content_direction='column'>
+                                <btn v-bind:onclick='save_as_file' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_save') }}</btn>
+                                <select_one v-bind:all_values='get_ei_select' v-bind:onedit='set_ei' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-exporter'></select_one>
+                                <ei_component ref='exporter_settings' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:bitmap='get_bitmap' v-bind:ei_obj='get_exporter' v-bind:onupdate='update_settings' v-bind:settings_obj='exporter_settings' v-bind:locale='locale'></ei_component>
+                            </bar>
+                        </bar>
+                        </keep-alive>
+                        <!-- Main window -->
+                        <bar v-show='current_mode=="main"'>
+                            <canvas-bitmap ref='bitmap' @cursor_moved='cursor_handler' v-bind:width_height='width_height' v-bind:try_save_pos='canvas_start' v-bind:scale='scale'></canvas-bitmap>
+                            <bar width='auto' content_direction='column'>
+                            <bar width='auto' content_direction='column' border_width='0' min_height='8rem'>
+                                <input2d ref='scale_bitmap' v-bind:default_left='width_height[0]' v-bind:default_right='width_height[1]' v-bind:onedit='resize' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_save_text=' ' style_class='resize_bitmap'></input2d>
+                                <num_input ref='scale_viewport' v-bind:onedit='scale_viewport' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"' btn_plus_text=' ' btn_minus_text=' ' style_class='scale_bitmap_viewport' v-bind:min_val='1' v-bind:max_val='20'></num_input>
+                                <btn ref='clear' v-bind:onclick='clear' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_clear') }}</btn>
+                                <select_one ref='canvas_start_pos' v-bind:all_values='[{bottom_left:get_l10n("bottom_left")},{top_left:get_l10n("top_left")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input' v-bind:new_value='canvas_start' v-bind:default_value='canvas_start'></select_one>
+                                <!--<select_one ref='canvas_start_pos' v-bind:all_values='[{export_from_bl:get_l10n("export_from_bl")},{export_from_br:get_l10n("export_from_br")},{export_from_tl:get_l10n("export_from_tl")},{export_from_tr:get_l10n("export_from_tr")}]' v-bind:onedit='set_canvas_start' v-bind:width='"calc(4*"+s_top_height+")"' v-bind:height='s_top_height' key='key-start-input'></select_one>-->
+                                <div v-html='pos_string' style='text-align:left;width:100%;padding-left:1rem;font-size:1rem'></div>
+                            </bar>
+                            <bar width='auto' v-bind:height='s_top_height' border_width='0'>
+                                    <btn v-bind:onclick='set_enter_mode' v-bind:height='s_top_height' v-bind:width='"calc(4*"+s_top_height+")"'>{{ get_l10n('btn_enter_new') }}</btn>
+                            </bar>
+                            </bar>
+                        </bar>
+                    </bar>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</body>
+<script type='module'>
+    import {default_l10n} from './default_l10n.js'
+    import {ru_l10n} from './ru_l10n.js'
+
+    import {canvas_bitmap} from './canvas_bitmap.js'
+    import {bar} from './bar.js'
+    import {button} from './button.js'
+    import {text_input} from './text_input.js'
+    import {input2d} from './input2d.js'
+    import {num_input} from './num_input.js'
+    import {select_one} from './select_one.js'
+    import {ei_component} from './ei_component.js'
+    import {ei_c} from './ei_c.js'
+
+
+    window.app = new Vue({
+        el: '#vbe',
+        components: {
+            'canvas-bitmap': canvas_bitmap,
+            'bar': bar,
+            'btn': button,
+            'text_input': text_input,
+            'input2d': input2d,
+            'num_input': num_input,
+            'select_one': select_one,
+            'ei_component': ei_component,
+        },
+        data: {
+            'locale': 'en',
+            'l10n': [
+                default_l10n,
+                ru_l10n,
+            ],
+            'filename': 'new_bitmap',
+            's_top_height': '2rem',
+            'width_height': [16, 16],
+            'canvas_start': 'bottom_left',
+            'scale': 1,
+            'cursor_pos': ['', ''],
+            'current_mode': 'main',
+            'ei_objects': [ei_c],
+            'ei_current': ei_c,
+            'exporter_settings': {},
+            'state_of_enter': 'none',
+            'error_enter': '',
+            'is_file_droppable': false,
+        },
+        computed: {
+            pos_string: function() {
+                if (this.cursor_pos[0] === '' && this.cursor_pos[1] === '')
+                    return ''
+                //return this.cursor_pos[0] + ', ' + this.cursor_pos[1];
+                return 'x: ' + this.cursor_pos[0] + '<br/>y: ' + this.cursor_pos[1];
+            },
+            get_save_img: function() {
+                return this.current_mode != 'main' ? './back.svg' : './save.svg';
+            },
+            get_ei_select: function() {
+                var to_ret = [];
+                var lst = this.ei_objects;
+                for (var i = 0; i < lst.length; i++)
+                    to_ret.push({[lst[i].name]: lst[i].name});
+                return to_ret;
+            },
+            get_exporter: function() {
+                var ei_name = this.ei_current.name;
+                var ex = null;
+                for (var i = 0; i < this.ei_objects.length; i++)
+                    if (this.ei_objects[i].name == ei_name) {
+                        ex = this.ei_objects[i];
+                        break;
+                    }
+                return ex;
+            },
+            get_bitmap: function() {
+                var bitmap = [];
+                Object.assign(bitmap, this.$refs.bitmap.bitmap);
+                bitmap.width = this.$refs.bitmap.width;
+                bitmap.height = this.$refs.bitmap.height;
+                for (var i = 0; i < bitmap.height; i++)
+                    bitmap[i] = Array.from(this.$refs.bitmap.bitmap[i]);
+                    //Object.assign(bitmap[i], this.$refs.bitmap.bitmap[i].slice());
+                if (this.canvas_start == 'bottom_left' 
+                        || this.canvas_start == 'bottom_right') {
+                    bitmap.reverse();
+                }
+                if (this.canvas_start == 'top_right' 
+                        || this.canvas_start == 'bottom_right') {
+                        console.log('reverse');
+                        console.log(bitmap[0]);
+                    for (var i = 0; i < bitmap.height; i++) {
+                        bitmap[i].reverse();
+                    }
+                }
+                return bitmap;
+            },
+            get_code: function() {
+                if (this.current_mode != 'save')
+                    return '';
+                return this.get_exporter.export(this.get_bitmap, this.exporter_settings);
+            },
+            btn_enter_str: function() {
+                if (this.state_of_enter == 'try')
+                    return this.get_l10n('btn_enter_set');
+                else
+                    return this.get_l10n('btn_enter_try');
+            },
+        },
+        methods: {
+            get_l10n: function(k) {
+                for (var i = 0; i < this.l10n.length; i++) {
+                    if (this.l10n[i].lang == this.locale) {
+                        var s = this.l10n[i].strings[k]; 
+                        if (s != undefined)
+                            return s;
+                    }
+                }
+                return default_l10n.strings[k];
+            },
+            get_exporter_by_extention: function(ex) {
+                for (var i = 0; i < this.ei_objects.length; i++) {
+                    var o = this.ei_objects[i];
+                    if (o.extention == ex)
+                        return o;
+                    for (var j = 0; j < o.additional_extentions.length; j++)
+                        if (o.additional_extentions[j] == ex)
+                            return o;
+                }
+                return null;
+            },
+            clear: function() {
+                this.$refs.bitmap.clear();
+            },
+            resize: function(width, height) {
+                this.width_height = [width, height];
+            },
+            scale_viewport: function(scale) {
+                this.scale = scale;
+            },
+            set_canvas_start: function(new_start) {
+                this.canvas_start = new_start;
+            },
+            cursor_handler: function(pos) {
+                if (pos[0] == this.width_height[0]
+                        || pos[0] == -1
+                        || pos[1] == this.width_height[1]
+                        || pos[1] == -1
+                    )
+                    this.cursor_pos = ['', ''];
+                else
+                    this.cursor_pos = pos;
+            },
+            set_filename: function(n_value) {
+                this.filename = n_value;
+            },
+            change_current_mode: function() {
+                if (this.current_mode == 'main')
+                    this.current_mode = 'save';
+                else {
+                    this.current_mode = 'main';
+                    this.error_enter = '';
+                }
+            },
+            set_enter_mode: function() {
+                this.current_mode = 'enter';
+            },
+            save_as_file: function() {
+                var content = this.get_code;
+                var el = document.createElement('a');
+                el.setAttribute('href', 'data:text/plain;charset=utf-8,'
+                        + encodeURIComponent(content)
+                    );
+                el.setAttribute('download', this.filename + this.get_exporter.extention);
+                el.style.display = 'none';
+                this.$el.appendChild(el);
+                el.click();
+                this.$el.removeChild(el);
+            },
+            add_ei: function(o) {
+                if (Array.isArray(obj))
+                    for (var i = 0; i < o.length; i++)
+                        this.add_ei(o[i]);
+                else {
+                    this.ei_objects.push(o);
+                }
+            },
+            set_ei: function(ei) {
+                this.ei_current = ei;
+            },
+            update_code_text: function() {
+            },
+            update_settings: function(values) {
+                this.exporter_settings = values;
+            },
+            set_next_enter_state: function() {
+                var im = this.get_exporter;
+                var text = this.$el.getElementsByTagName('textarea')[0].value;
+                if (this.state_of_enter != 'try') {
+                    var error = im.get_import_errors(text, im.error_strings[this.locale]);
+                    if (error == null)
+                        this.state_of_enter = 'try';
+                    else {
+                        this.error_enter = error;
+                    }
+                }
+                else {
+                    this.import_from_text(text);
+                }
+            },
+            import_from_text: function(text, im=this.get_exporter) {
+                var bitmap = im.import(text);
+                if (this.canvas_start == 'bottom_left' 
+                        || this.canvas_start == 'bottom_right') {
+                    bitmap.reverse();
+                }
+                if (this.canvas_start == 'top_right' 
+                        || this.canvas_start == 'bottom_right') {
+                        console.log('reverse');
+                        console.log(bitmap[0]);
+                    for (var i = 0; i < bitmap.height; i++) {
+                        bitmap[i].reverse();
+                    }
+                }
+                var canvas_start_backup = this.canvas_start;
+                this.canvas_start = null;
+                this.$nextTick(()=>{
+                    this.width_height = [bitmap[0].length, bitmap.length];
+                    this.$nextTick(()=>{
+                        this.$refs.bitmap.bitmap = bitmap;
+                        this.canvas_start = canvas_start_backup;
+                        this.state_of_enter = 'none';
+                        this.current_mode = 'main';
+                    });
+                });
+            },
+            reset_enter_state: function() {
+                this.state_of_enter = 'none';
+                this.error_enter = '';
+            },
+            import_file: function(e) {
+                this.stop_drag();
+                e.preventDefault()
+                var filename = '';
+                console.log(filename);
+                if (e.dataTransfer.items) {
+                    for (var i = 0; i < e.dataTransfer.items.length; i++) {
+                        // If dropped items aren't files, reject them
+                        if (e.dataTransfer.items[i].kind === 'file') {
+                            var file = e.dataTransfer.items[i].getAsFile();
+                            filename = file.name;
+                            var reader = new FileReader();
+                            reader.readAsBinaryString(file);
+                            reader.onloadend = ()=>{
+                                var content = reader.result;
+                                var new_name = filename.split('.');
+                                var extention = new_name.pop();
+                                new_name = new_name.join('.');
+                                var importer = this.get_exporter_by_extention(extention);
+                                if (importer == null) {
+                                    return;
+                                }
+                                var error = importer.get_import_errors(content, importer.error_strings[this.locale]);
+                                if (error != null) {
+                                    alert('Error!\n' + error);
+                                    return;
+                                }
+                                this.import_from_text(content, importer);
+                                this.filename = new_name;
+                            };
+                            break;
+                        }
+                    }
+                    e.dataTransfer.items.clear();
+                }
+            },
+            prevent_drag: function(e) {
+                this.is_file_droppable = true;
+                e.preventDefault();
+            },
+            stop_drag: function() {
+                this.is_file_droppable = false;
+            },
+        },
+        watch: {
+            get_code: function(new_val, oldval) {
+                if (this.current_mode != 'save')
+                    return;
+                this.$nextTick(()=>{
+                    var el = this.$el.getElementsByTagName('code')[0];
+                    el.textContent = new_val;
+                    hljs.highlightBlock(el);
+                });
+            },
+        },
+    });
+</script>
+</html>
