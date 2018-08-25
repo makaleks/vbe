@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+<!-- TODO: use npm and sw-precache (cache changes detection at building) -->
 <html lang='en'>
 <head>
     <meta charset='utf-8'>
     <title>VBE</title>
     <script src='vue.js'></script>
-    <script src='vuex.js'></script>
-    <link rel='stylesheet' href='vbe.css'>
+    <!--<script src='vuex.js'></script>
+    <link rel='stylesheet' href='vbe.css'>-->
 
     <link rel='stylesheet' href='./highlight/styles/github-gist.css'>
     <script src='./highlight/highlight.pack.js'></script>
@@ -436,7 +437,7 @@
 <script>
 if ('serviceWorker' in navigator) {
  window.addEventListener('load', function() {  
-   navigator.serviceWorker.register('/sw.js').then(
+   navigator.serviceWorker.register('sw.js').then(
      function(registration) {
        // Registration was successful
        console.log('Site can be added offline: ServiceWorker registration successful with scope: ', registration.scope); },
