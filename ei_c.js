@@ -48,16 +48,30 @@ export var ei_c = {
         var tab_str = options.tabs_to_4_spaces ? '    ' : '\t';
         //console.log('bitmap[0][0] == ' + bitmap[0][0]);
         //console.log('hi' + tab_str + '-');
+        var exp_width = options.use_hex ? bitmap.width / 8 : bitmap.width;
+        var exp_height = bitmap.height;
         str += '#include <stdint.h>\n\n';
-        str += 'const size_t width  = ' + bitmap.width + ';\n';
-        str += 'const size_t height = ' + bitmap.height + ';\n';
+        str += 'const size_t width  = ' + exp_width + ';\n';
+        str += 'const size_t height = ' + exp_height + ';\n';
         var size_str = options.plain_array 
-                ? '[' + bitmap.width*bitmap.height + ']' 
-                : '[' + bitmap.height + '][' + bitmap.width + ']';
+                ? '[' + exp_width*exp_height + ']' 
+                : '[' + exp_height + '][' + exp_width + ']';
         str += 'uint8_t bitmap' + size_str 
                 + ' = {\n' + tab_str;
+        if (!options.plain_array)
+            str += '{ ';
         var value = 0;
         var to_add_str = '';
+        var process_next = (w,h)=>{
+            if (w != bitmap.width - 1)
+                to_add_str += ', ';
+            else if (h != bitmap.height - 1) {
+                if (options.plain_array)
+                    to_add_str += ',\n' + tab_str;
+                else
+                    to_add_str += ' },\n' + tab_str + '{ ';
+            }
+        };
         var val_to_hex = (v)=>{
             if (v >= 10)
                 return String.fromCharCode('A'.charCodeAt(0) + v - 10);
@@ -71,10 +85,8 @@ export var ei_c = {
                 //to_add_str = value.toString(16).toUpperCase();
                 to_add_str = '0x' + val_to_hex(value >> 4);
                 to_add_str += val_to_hex(value % 16);
-                if (w != bitmap.width - 1)
-                    to_add_str += ', ';
-                else if (h != bitmap.height - 1)
-                    to_add_str += ',\n' + tab_str;
+
+                process_next(w, h);
                 str += to_add_str;
                 value = 0;
             }
@@ -82,10 +94,8 @@ export var ei_c = {
         var process_bool = (w,h) => {
             value = bitmap[h][w] ? 1 : 0;
             to_add_str = String(value);
-            if (w != bitmap.width - 1)
-                to_add_str += ', ';
-            else if (h != bitmap.height - 1)
-                to_add_str += ',\n' + tab_str;
+
+            process_next(w, h);
             str += to_add_str;
         };
         var process = options.use_hex ? process_hex : process_bool;
@@ -95,6 +105,8 @@ export var ei_c = {
                 process(w,h);
             }
         }
+        if (!options.plain_array)
+            str += ' }';
         str += '\n};\n';
         return str;
     },
@@ -166,7 +178,7 @@ export var ei_c = {
             case 'hex':
                 num_elements = array_str.match(reg_hex).length;
                 //console.log(num_elements);
-                if (num_elements * 8 != width * height)
+                if (num_elements != width * height)
                     return error_strings['number_not_match'];
                 break;
             default:
@@ -214,11 +226,11 @@ export var ei_c = {
             // hex
             array_elements = array_elements.match(reg_hex);
             for (var h = 0; h < height; h++)
-                for (var w = 0; w < width; w += 8) {
-                    var pos = (h*width + w) / 8;
+                for (var w = 0; w < width; w++) {
+                    var pos = h*width + w;
                     var num = parseInt(array_elements[pos].slice(2), 16);
                     for (var i = 0; i < 8; i++) {
-                        bitmap[h][w + i] = num & (1 << (7 - i));
+                        bitmap[h][w*8 + i] = num & (1 << (7 - i));
                     }
                 }
         }
