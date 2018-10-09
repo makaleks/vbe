@@ -80,6 +80,7 @@ export var ei_component = {
                     // or the default value
                     enabled = obj[k].is_possible(this.bitmap);
                     if (typeof(enabled) != 'boolean') {
+                        console.log(k + ' DISABLED: ' + enabled.error);
                         if (enabled.new_default)
                             value = enabled.new_default;
                         enabled = false;

@@ -31,7 +31,7 @@ export var ei_c = {
                 if (bitmap.width % 8 != 0) {
                     // Attention! 'this' is the 'use_hex' object!
                     return {
-                        error: 'The bitmap width must be divisible by 8, but width % 8 = ' + bitmap.width % 8,
+                        error: 'The bitmap width must be divisible by 8, but ' + bitmap.width + ' % 8 = ' + bitmap.width % 8,
                         new_default: false
                     };
                 }

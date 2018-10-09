@@ -415,6 +415,12 @@
             },
         },
         watch: {
+            current_mode: function(new_val, old_val) {
+                if (this.current_mode == 'save')
+                    this.$nextTick(()=>{
+                        this.$refs.exporter_settings.reinit_data();
+                    });
+            },
             get_code: function(new_val, oldval) {
                 if (this.current_mode != 'save')
                     return;
