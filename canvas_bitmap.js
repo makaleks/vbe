@@ -62,7 +62,7 @@ export var canvas_bitmap = {
 <div v-on:scroll='onscroll' v-bind:class='style_class' v-bind:style='{"position":"relative","width":"100%","height":"100%",overflow:overflow}'>
 <iframe style='z-index:-1;position:absolute;width:100%;height:100%;' frameborder=0></iframe>
 <div name='container-center' v-bind:style='{width:"100%",height:"100%","background-color":style_background_color}'>
-    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:pointerdown='start_drawing' v-on:pointerup='end_drawing' v-on:pointermove='draw' style='position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
+    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:pointerdown='start_drawing' v-on:pointerup='end_drawing' v-on:pointerleave='end_drawing' v-on:pointermove='draw' style='position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
 </div>
 </div>
     `,
