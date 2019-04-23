@@ -62,7 +62,7 @@ export var canvas_bitmap = {
 <div v-on:scroll='onscroll' v-bind:class='style_class' v-bind:style='{"position":"relative","width":"100%","height":"100%",overflow:overflow}'>
 <iframe style='z-index:-1;position:absolute;width:100%;height:100%;' frameborder=0></iframe>
 <div name='container-center' v-bind:style='{width:"100%",height:"100%","background-color":style_background_color}'>
-    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:pointerdown='start_drawing' v-on:pointerup='end_drawing' v-on:pointerleave='end_drawing' v-on:pointermove='draw' style='position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
+    <canvas v-bind:width='canvas_width' v-bind:height='canvas_height' v-on:pointerdown.prevent.stop='start_drawing' v-on:touchstart.prevent.stop='start_drawing' v-on:touchend.prevent.stop='end_drawing' v-on:touchcancel.prevent.stop='end_drawing' v-on:touchmove.prevent.stop='draw' v-on:pointerup.prevent.stop='end_drawing' v-on:pointerleave.prevent.stop='end_drawing' v-on:pointermove.prevent.stop='draw' style='touch-action:none;position:absolute;display:block;left:0;right:0;top:0;bottom:0;z-index:0;'></canvas>
 </div>
 </div>
     `,
@@ -137,9 +137,20 @@ export var canvas_bitmap = {
                 bitmap[i] = Array(this.width).fill(0);
             this.bitmap = bitmap;
         },
+        process_touch: function(ev, f) {
+            if (ev.touches == undefined)
+                return false;
+            for (var i = 0; i < ev.changedTouches.length; i++) {
+                f(ev.changedTouches[i]);
+            }
+            return true;
+        },
         start_drawing: function(e) {
+            if (this.process_touch(e, this.draw)) {
+                return;
+            }
             // left mouse button
-            if (e.button == 0) {
+            else if (e.button == 0) {
                 this.$options.is_drawing = true;
                 this.draw(e);
             }
@@ -157,7 +168,8 @@ export var canvas_bitmap = {
             this.send_cursor_pos();
         },
         draw: function(e) {
-            //console.log(e);
+            if (this.process_touch(e, this.draw))
+                return;
             this.set_msg('sizes: ' + e.clientX + ':' + e.clientY);
             var canvas = this.$el.getElementsByTagName('canvas')[0];
             var cell_width = this.canvas_width / this.width;

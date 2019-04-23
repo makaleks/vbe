@@ -9,21 +9,19 @@ toolbox.precache([
     'vue.js',
     'highlight/styles/github-gist.css',
     'highlight/highlight.pack.js',
-    'icons/apple-icon-57x57.png',
-    'icons/apple-icon-60x60.png',
-    'icons/apple-icon-72x72.png',
-    'icons/apple-icon-76x76.png',
-    'icons/apple-icon-114x114.png',
-    'icons/apple-icon-120x120.png',
-    'icons/apple-icon-144x144.png',
-    'icons/apple-icon-152x152.png',
-    'icons/apple-icon-180x180.png',
-    'icons/android-icon-192x192.png',
-    'icons/favicon-32x32.png',
-    'icons/favicon-96x96.png',
+    'icons/android-chrome-192x192.png',
+    'icons/android-chrome-512x512.png',
+    'icons/apple-touch-icon.png',
+    'icons/apple-touch-icon-precomposed.png',
+    'icons/favicon.ico',
     'icons/favicon-16x16.png',
-    'icons/ms-icon-144x144.png',
-    'manifest.json',
+    'icons/favicon-32x32.png',
+    'icons/mstile-144x144.png',
+    'icons/mstile-150x150.png',
+    'icons/mstile-310x150.png',
+    'icons/mstile-310x310.png',
+    'icons/safari-pinned-tab.svg',
+    'site.webmanifest',
 
     'back.svg',
     'check.svg',
@@ -46,5 +44,6 @@ toolbox.precache([
     'ei_c.js',
 
 ]); 
-//toolbox.router.get('/images/*', toolbox.cacheFirst); 
-//toolbox.router.get('/*', toolbox.networkFirst, { networkTimeoutSeconds: 5});
+toolbox.router.get('/highlight/*', toolbox.cacheFirst); 
+toolbox.router.get('/icons/*', toolbox.cacheFirst); 
+toolbox.router.get('/*', toolbox.networkFirst, { networkTimeoutSeconds: 5});
