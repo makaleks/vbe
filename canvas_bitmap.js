@@ -152,6 +152,7 @@ export var canvas_bitmap = {
                 this.$options.is_drawing = false;
                 this.$options.last_point = [null, null];
             }
+            // Feature: indicate draw finish
             this.cursor_pos = ['', ''];
             this.send_cursor_pos();
         },
